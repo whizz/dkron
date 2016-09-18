@@ -1,6 +1,7 @@
 package dkron
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,11 @@ func Test_buildCmd(t *testing.T) {
 	cmd := buildCmd(testJob1)
 	out, err := cmd.CombinedOutput()
 	assert.NoError(t, err)
-	assert.Equal(t, "test1\nsuccess\n", string(out))
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, "'test1' \r\n'success'\r\n", string(out))
+	} else {
+		assert.Equal(t, "test1\nsuccess\n", string(out))
+	}
 
 	testJob2 := &Job{
 		Command: "date && echo 'success'",

@@ -136,7 +136,6 @@ func TestAgentCommand_runForElection(t *testing.T) {
 
 	kv, _ := client.Get("dkron/leader")
 	leader := string(kv.Value)
-	log.Printf("%s is the current leader", leader)
 	if leader != a1Name {
 		t.Errorf("Expected %s to be the leader, got %s", a1Name, leader)
 	}
@@ -144,14 +143,20 @@ func TestAgentCommand_runForElection(t *testing.T) {
 	// Send a shutdown request
 	shutdownCh <- struct{}{}
 
-	// Wait until test2 steps as leader
-	time.Sleep(30 * time.Second)
+	// check every second, if a2 is leader, wait up to 30 seconds
+	waitUntil := time.Now().Add(30 * time.Second)
+	for leader != a2Name && time.Now().Before(waitUntil) {
+		kv, err = client.Get("dkron/leader")
+		if err != nil {
+			t.Errorf("Error while getting dkron/leader: %s", err)
+		} else {
+			leader = string(kv.Value)
+		}
+		time.Sleep(time.Second)
+	}
 
-	kv, _ = client.Get("dkron/leader")
-	leader = string(kv.Value)
-	log.Printf("%s is the current leader", leader)
 	if leader != a2Name {
-		t.Errorf("Expected %s to be the leader, got %s", a2Name, leader)
+		t.Fatalf("Expected %s to be the leader, got %s", a2Name, leader)
 	}
 }
 

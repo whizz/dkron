@@ -12,7 +12,7 @@ func TestStore(t *testing.T) {
 
 	// Cleanup everything
 	err := store.Client.DeleteTree("dkron-test")
-	if err != s.ErrKeyNotFound {
+	if err != nil && err != s.ErrKeyNotFound {
 		t.Logf("error cleaning up: %s", err)
 	}
 

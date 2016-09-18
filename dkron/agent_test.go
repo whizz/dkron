@@ -136,9 +136,7 @@ func TestAgentCommand_runForElection(t *testing.T) {
 
 	kv, _ := client.Get("dkron/leader")
 	leader := string(kv.Value)
-	if leader != a1Name {
-		t.Errorf("Expected %s to be the leader, got %s", a1Name, leader)
-	}
+	assert.Equal(t, a1Name, leader)
 
 	// Send a shutdown request
 	shutdownCh <- struct{}{}
@@ -155,9 +153,7 @@ func TestAgentCommand_runForElection(t *testing.T) {
 		time.Sleep(time.Second)
 	}
 
-	if leader != a2Name {
-		t.Fatalf("Expected %s to be the leader, got %s", a2Name, leader)
-	}
+	assert.Equal(t, a2Name, leader)
 }
 
 func Test_processFilteredNodes(t *testing.T) {

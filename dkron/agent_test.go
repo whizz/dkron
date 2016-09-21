@@ -90,7 +90,7 @@ func TestAgentCommand_runForElection(t *testing.T) {
 	err = client.DeleteTree("dkron")
 	if err != nil {
 		if err != store.ErrKeyNotFound {
-			panic(err)
+			t.Fatalf("Error cleaning up beforehand: %s", err)
 		}
 	}
 
@@ -108,7 +108,18 @@ func TestAgentCommand_runForElection(t *testing.T) {
 	}()
 
 	// Wait for the first agent to start and set itself as leader
-	time.Sleep(2 * time.Second)
+	leader := ""
+	for leader != a1Name {
+		kv, err := client.Get("dkron/leader")
+		if err != nil {
+			if err != store.ErrKeyNotFound {
+				t.Fatalf("Error reading dkron/leader: %s", err)
+			}
+			time.Sleep(time.Second)
+		} else {
+			leader = string(kv.Value)
+		}
+	}
 
 	// Start another agent
 	shutdownCh2 := make(chan struct{})
@@ -135,7 +146,7 @@ func TestAgentCommand_runForElection(t *testing.T) {
 	}()
 
 	kv, _ := client.Get("dkron/leader")
-	leader := string(kv.Value)
+	leader = string(kv.Value)
 	assert.Equal(t, a1Name, leader)
 
 	// Send a shutdown request

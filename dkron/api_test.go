@@ -36,7 +36,19 @@ func setupAPITest(t *testing.T) (chan<- struct{}, <-chan int) {
 		resultCh <- a.Run(args)
 	}()
 
-	time.Sleep(10 * time.Millisecond)
+	// wait for the API to become available
+	waitUntil := time.Now().Add(10 * time.Second)
+	available := false
+	for !available && time.Now().Before(waitUntil) {
+		_, err := http.Get("http://localhost:8090/v1/")
+		if err != nil {
+			time.Sleep(100 * time.Millisecond)
+		} else {
+			available = true
+			break
+		}
+	}
+	assert.Equal(t, true, available)
 
 	return shutdownCh, resultCh
 }

@@ -156,9 +156,7 @@ func TestAgentCommand_runForElection(t *testing.T) {
 	waitUntil := time.Now().Add(30 * time.Second)
 	for leader != a2Name && time.Now().Before(waitUntil) {
 		kv, err = client.Get("dkron/leader")
-		if err != nil {
-			t.Errorf("Error while getting dkron/leader: %s", err)
-		} else {
+		if err == nil {
 			leader = string(kv.Value)
 		}
 		time.Sleep(time.Second)
